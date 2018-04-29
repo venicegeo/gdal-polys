@@ -7,6 +7,7 @@ import re
 import multiprocessing as mp
 import beachtools as bt
 
+
 def create_parser():
     """Create the argparse parser."""
     parser = argparse.ArgumentParser()
@@ -24,11 +25,15 @@ def create_parser():
                         type=str,
                         help="name of output shape file")
     return(parser)
+
+
 def main():
     args = create_parser().parse_args()
     bt.ver_check()
-    smalls, larges = bt.read_gjsons(args.small_lines,args.large_lines)
-    bt.trim_and_merge(smalls, larges)
+    smalls, larges = bt.read_gjsons(args.small_lines, args.large_lines)
+    merged = bt.trim_and_merge(smalls, larges)
+    final_ta = bt.make_and_write_ta(merged)
+
 
 if __name__ == "__main__":
     main()
