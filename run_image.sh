@@ -5,4 +5,3 @@ docker run -it --rm \
 	 -w /home \
 	 brandonrasmussen/brandon_csp_images:latest \
 	 /bin/bash \
-pip install shapely

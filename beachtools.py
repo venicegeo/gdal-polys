@@ -53,6 +53,9 @@ def trim_and_merge(smaller, larger):
     hits = filter(smallbbpoly.contains, [Point(x) for x in finalpoints])
     hits = [x for x in list(hits)]
     trimmedlarge = LineString(hits)
+
+    def reindex_trimmed(trimmed=trimmedlarge, other=smallermerged):
+        print(list(trimmed.coords)[0])
     finallist = list(smallermerged)
     finallist.append(trimmedlarge)
     final = MultiLineString(finallist)
