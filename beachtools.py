@@ -10,7 +10,10 @@ from shapely import ops
 
 
 
+
+
 def read_gjsons(smaller, larger):
+    '''Reads in raw geojsons from Beachfront output stored in jsons directory'''
     thedir = os.getcwd() + '/jsons/'
     for json in [smaller, larger]:
         os.system('ogr2ogr -nlt LINESTRING -skipfailures ' + thedir +
@@ -98,7 +101,18 @@ def make_and_write_ta(merged, out_name):
     feat = geom = None
     # Save and close everything
     ds = layer = feat = geom = None
+    os.system('ogr2ogr -a_srs EPSG:4326 ' + out_name + ' ' + out_name)
+    def get_UTM_info(multipoly=multipoly):
+        latlon = list(multipoly.bounds)[0:2]
+        if latlon[0] < 0:
+            hemi=0
+        else:
+            hemi=1
+        zoneval=int(1+(latlon[1]+180.0)/6.0)
+        return(hemi, zoneval)
+    hemi, zoneval=get_UTM_info()
+    t_srs='"+proj=utm +zone=' + str(zoneval) + ' +datum=WGS84"'
+    warpcommand='ogr2ogr -t_srs ' + t_srs + '-overwrite ' + out_name[:-4] + '_utm.shp ' + ' ' + out_name
+    os.system(warpcommand)
+    os.system('ogrinfo -sql "SELECT SUM(OGR_GEOM_AREA) AS TOTAL_AREA FROM ' + out_name[:-4] + '_utm' + '" ' + out_name[:-4] + '_utm.shp' + '| grep "TOTAL_AREA"')
     return(multipoly)
-
-def print_report(multipoly, out_name):
-    print('Total tidal area is ' + str(multipoly.area))

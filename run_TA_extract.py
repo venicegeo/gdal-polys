@@ -31,7 +31,6 @@ def main():
     smalls, larges = bt.read_gjsons(args.small_lines, args.large_lines)
     merged = bt.trim_and_merge(smalls, larges)
     final_ta = bt.make_and_write_ta(merged, args.out_name)
-    bt.print_report(final_ta, args.out_name)
 
 
 if __name__ == "__main__":
