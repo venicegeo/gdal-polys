@@ -3,3 +3,6 @@ jsons
 *.geojson
 *.json
 *.shp
+*.shx
+*.dbf
+*.pyc
