@@ -6,12 +6,8 @@ import osr
 from osgeo import ogr, gdal
 from shapely.geometry import LineString, MultiLineString, mapping, shape, base, box, Point, MultiPolygon, Polygon
 from shapely.prepared import prep
+from shapely import ops
 
-
-def ver_check():
-    version_num = int(gdal.VersionInfo('VERSION_NUM'))
-    if version_num < 1100000:
-        sys.exit('ERROR: Python bindings of GDAL 1.10 or later required')
 
 
 def read_gjsons(smaller, larger):
@@ -55,18 +51,42 @@ def trim_and_merge(smaller, larger):
     trimmedlarge = LineString(hits)
 
     def reindex_trimmed(trimmed=trimmedlarge, other=smallermerged):
-        print(list(trimmed.coords)[0])
-    finallist = list(smallermerged)
-    finallist.append(trimmedlarge)
-    final = MultiLineString(finallist)
+        targetpoint=Point(list(trimmed.coords)[0])
+        finallist = list(other)
+        distlist=[]
+        indexlist=[]
+        index=0
+        for linestring in finallist:
+            endpoints=[list(linestring.coords)[0], list(linestring.coords)[-1]]
+            for point in endpoints:
+                indexlist.append(index)
+                dist=targetpoint.distance(Point(point))
+                distlist.append(dist)
+            index+=1
+        targetindex=np.where(distlist == np.min(distlist))[0][0]
+        if targetindex % 2 == 0:
+            modifer=0
+        else:
+            modifier=1
+        lineindex=indexlist[targetindex]
+        targetlinecoords=finallist[lineindex].coords[:]
+        targetlinecoords[(modifier*-1)]=targetpoint.coords[0]
+        finallist[lineindex]=LineString(targetlinecoords)
+        combinedlist=MultiLineString([trimmed,finallist[lineindex]])
+        combined=ops.linemerge(combinedlist)
+        del finallist[lineindex]
+        finallist.insert(lineindex-1,combined)
+        final = MultiLineString(finallist)
+        return(final)
+    final=reindex_trimmed()
     return(final)
 
 
-def make_and_write_ta(merged):
+def make_and_write_ta(merged, out_name):
     polygons = [Polygon(x) for x in list(merged)]
     multipoly = MultiPolygon(polygons)
     driver = ogr.GetDriverByName('Esri Shapefile')
-    ds = driver.CreateDataSource('my.shp')
+    ds = driver.CreateDataSource(out_name)
     layer = ds.CreateLayer('', None, ogr.wkbPolygon)
     layer.CreateField(ogr.FieldDefn('id', ogr.OFTInteger))
     defn = layer.GetLayerDefn()
@@ -78,3 +98,7 @@ def make_and_write_ta(merged):
     feat = geom = None
     # Save and close everything
     ds = layer = feat = geom = None
+    return(multipoly)
+
+def print_report(multipoly, out_name):
+    print('Total tidal area is ' + str(multipoly.area))
