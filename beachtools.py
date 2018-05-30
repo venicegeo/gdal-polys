@@ -9,11 +9,8 @@ from shapely.prepared import prep
 from shapely import ops
 
 
-
-
-
 def read_gjsons(smaller, larger):
-    '''Reads in raw geojsons from Beachfront output stored in jsons directory'''
+    '''Reads in raw geojsons stored in jsons directory'''
     thedir = os.getcwd() + '/jsons/'
     for json in [smaller, larger]:
         os.system('ogr2ogr -nlt LINESTRING -skipfailures ' + thedir +
@@ -25,6 +22,7 @@ def read_gjsons(smaller, larger):
 
 
 def lines_to_multilines(layer):
+    '''Converts open geojson layers to shapely MultiLineString objects'''
     linelist = []
     coordsline = []
     for feature in layer:
@@ -40,6 +38,7 @@ def lines_to_multilines(layer):
 
 
 def trim_and_merge(smaller, larger):
+    '''Reindexes and combines lines to form continuous shapes after trimming the larger vector'''
     layer = smaller.GetLayer()
     smallermerged = lines_to_multilines(layer)[0]
     smallbb = smallermerged.bounds
@@ -54,38 +53,40 @@ def trim_and_merge(smaller, larger):
     trimmedlarge = LineString(hits)
 
     def reindex_trimmed(trimmed=trimmedlarge, other=smallermerged):
-        targetpoint=Point(list(trimmed.coords)[0])
+        targetpoint = Point(list(trimmed.coords)[0])
         finallist = list(other)
-        distlist=[]
-        indexlist=[]
-        index=0
+        distlist = []
+        indexlist = []
+        index = 0
         for linestring in finallist:
-            endpoints=[list(linestring.coords)[0], list(linestring.coords)[-1]]
+            endpoints = [list(linestring.coords)[0], list(linestring.coords)[-1]]
             for point in endpoints:
                 indexlist.append(index)
-                dist=targetpoint.distance(Point(point))
+                dist = targetpoint.distance(Point(point))
                 distlist.append(dist)
-            index+=1
-        targetindex=np.where(distlist == np.min(distlist))[0][0]
+            index += 1
+        targetindex = np.where(distlist == np.min(distlist))[0][0]
         if targetindex % 2 == 0:
-            modifer=0
+            modifer = 0
         else:
-            modifier=1
-        lineindex=indexlist[targetindex]
-        targetlinecoords=finallist[lineindex].coords[:]
-        targetlinecoords[(modifier*-1)]=targetpoint.coords[0]
-        finallist[lineindex]=LineString(targetlinecoords)
-        combinedlist=MultiLineString([trimmed,finallist[lineindex]])
-        combined=ops.linemerge(combinedlist)
+            modifier = 1
+        lineindex = indexlist[targetindex]
+        targetlinecoords = finallist[lineindex].coords[:]
+        targetlinecoords[(modifier * -1)] = targetpoint.coords[0]
+        finallist[lineindex] = LineString(targetlinecoords)
+        combinedlist = MultiLineString([trimmed, finallist[lineindex]])
+        combined = ops.linemerge(combinedlist)
         del finallist[lineindex]
-        finallist.insert(lineindex-1,combined)
+        finallist.insert(lineindex - 1, combined)
         final = MultiLineString(finallist)
         return(final)
-    final=reindex_trimmed()
+    final = reindex_trimmed()
     return(final)
 
 
 def make_and_write_ta(merged, out_name):
+    '''Forms a MultiPolygon from a MultiLineString, georeferences it,
+     and calculates its area before writing it to a shape file.'''
     polygons = [Polygon(x) for x in list(merged)]
     multipoly = MultiPolygon(polygons)
     driver = ogr.GetDriverByName('Esri Shapefile')
@@ -102,17 +103,20 @@ def make_and_write_ta(merged, out_name):
     # Save and close everything
     ds = layer = feat = geom = None
     os.system('ogr2ogr -a_srs EPSG:4326 ' + out_name + ' ' + out_name)
+
     def get_UTM_info(multipoly=multipoly):
         latlon = list(multipoly.bounds)[0:2]
         if latlon[0] < 0:
-            hemi=0
+            hemi = 0
         else:
-            hemi=1
-        zoneval=int(1+(latlon[1]+180.0)/6.0)
+            hemi = 1
+        zoneval = int(1 + (latlon[1] + 180.0) / 6.0)
         return(hemi, zoneval)
-    hemi, zoneval=get_UTM_info()
-    t_srs='"+proj=utm +zone=' + str(zoneval) + ' +datum=WGS84"'
-    warpcommand='ogr2ogr -t_srs ' + t_srs + '-overwrite ' + out_name[:-4] + '_utm.shp ' + ' ' + out_name
+    hemi, zoneval = get_UTM_info()
+    t_srs = '"+proj=utm +zone=' + str(zoneval) + ' +datum=WGS84"'
+    warpcommand = 'ogr2ogr -t_srs ' + t_srs + '-overwrite ' + \
+        out_name[:-4] + '_utm.shp ' + ' ' + out_name
     os.system(warpcommand)
-    os.system('ogrinfo -sql "SELECT SUM(OGR_GEOM_AREA) AS TOTAL_AREA FROM ' + out_name[:-4] + '_utm' + '" ' + out_name[:-4] + '_utm.shp' + '| grep "TOTAL_AREA"')
+    os.system('ogrinfo -sql "SELECT SUM(OGR_GEOM_AREA) AS TOTAL_AREA FROM ' +
+              out_name[:-4] + '_utm' + '" ' + out_name[:-4] + '_utm.shp' + '| grep "TOTAL_AREA"')
     return(multipoly)
