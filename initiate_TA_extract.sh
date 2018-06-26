@@ -4,6 +4,6 @@ pip3 install shapely
 pip3 install gdal
 pip3 install numpy
 python3 run_TA_extract.py \
-    --small_lines '14AUG2017_GBDX.geojson' \
-    --large_lines 'Bandar_Abbas_OSM.geojson' \
+    --small_lines '/home/Landsat1.geojson' \
+    --large_lines '/home/Landsat2.geojson' \
     --out_name 'GBDX_TA.shp' \

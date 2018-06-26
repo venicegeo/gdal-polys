@@ -67,7 +67,7 @@ def trim_and_merge(smaller, larger):
             index += 1
         targetindex = np.where(distlist == np.min(distlist))[0][0]
         if targetindex % 2 == 0:
-            modifer = 0
+            modifier = 0
         else:
             modifier = 1
         lineindex = indexlist[targetindex]
