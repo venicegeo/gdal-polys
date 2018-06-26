@@ -9,19 +9,19 @@ Compatible with QGIS 2.18.16 and 3.0
 Navigate to the python folder within your qgis installation directory.  For linux systems, this is likely /home/user/.qgis2 
 
 ~~~
-cd /home/user/qgis2
+$ cd /home/user/qgis2
 ~~~
 
 Find the plugins path 
 
 ~~~
-cd /home/user/qgis2/python/plugins. 
+$ cd /home/user/qgis2/python/plugins. 
 ~~~
 
 Copy the folder labeled "Polygon_Generator" from the gdal-poly repo into the plugins folder
 
 ~~~
-cp -r ../home/user/Documents/gdal-polys/Polygon_Generator /home/user/.qgis2/python/plugins
+$ cp -r ../home/user/Documents/gdal-polys/Polygon_Generator /home/user/.qgis2/python/plugins
 ~~~
 
 Launch QGIS and select Plugins --> Manage and Install Plugins
@@ -71,7 +71,7 @@ usage: run_TA_extract.py --small_lines Smaller polyline file --large_lines Large
 
 Sample Query:
 ~~~
- $python run_TA_extract.py --small_lines Landsat1.geojson --large_lines Landsat2.geojson --out_name Results.shp
+ $ python run_TA_extract.py --small_lines Landsat1.geojson --large_lines Landsat2.geojson --out_name Results.shp
 ~~~
 
 
