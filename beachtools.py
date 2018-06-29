@@ -3,7 +3,10 @@ import os
 import sys
 import re
 import osr
-from osgeo import ogr, gdal
+try:
+    from osgeo import gdal, ogr, osr
+except:
+    import gdal, ogr, osr
 from shapely.geometry import LineString, MultiLineString, mapping, shape, base, box, Point, MultiPolygon, Polygon
 from shapely.prepared import prep
 from shapely import ops
@@ -11,13 +14,15 @@ from shapely import ops
 
 def read_gjsons(smaller, larger):
     '''Reads in raw geojsons stored in jsons directory'''
-    thedir = os.getcwd() + '/jsons/'
+    #thedir = os.getcwd() + '/jsons/'
     for json in [smaller, larger]:
-        os.system('ogr2ogr -nlt LINESTRING -skipfailures ' + thedir +
-                  json[:-8] + '.shp ' + thedir + json + ' OGRGeoJSON')
+        outShp = json[:-8] + '.shp'
+        exeString = 'ogr2ogr -nlt LINESTRING -skipfailures %s.shp %s' % (json[:-8], json)
+        print 'Converting geojson to shapefile.  System Command: %s' % exeString
+        os.system(exeString)
     driver = ogr.GetDriverByName("ESRI Shapefile")
-    smallines = driver.Open(thedir + smaller[:-8] + '.shp', 0)
-    largelines = driver.Open(thedir + larger[:-8] + '.shp', 0)
+    smallines = driver.Open(smaller[:-8] + '.shp', 0)
+    largelines = driver.Open(larger[:-8] + '.shp', 0)
     return(smallines, largelines)
 
 
