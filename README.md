@@ -75,9 +75,9 @@ usage: run_TA_extract.py --small_lines Smaller polyline file --large_lines Large
 					
 | Keys | Description
 ------|-------------------
-| --small_lines | Polyline filename with the smaller spatial extent containing coastlines. This tool expects geojson files within the jsons folder.	
-| --large_lines | Polyline filename with the larger spatial extent containing coastlines. This tool expects geojson files within the jsons folder.
-| --out_name | Name of output shape file.  default='beachfront_poly.shp'
+| --small_lines | Polyline filename with the smaller spatial extent containing coastlines using full path.
+| --large_lines | Polyline filename with the larger spatial extent containing coastlines using full path.
+| --out_name | Filename of output shape file using full path.  default='beachfront_poly.shp'
 
 Sample Query:
 ~~~
