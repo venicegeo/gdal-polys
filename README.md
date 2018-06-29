@@ -44,7 +44,9 @@ Select the output Polygon name.  Click the OK button.
 
 ![Tool GUI](Polygon_Generator/images/ToolGui.png)
 
+The results will be displayed in polygon format
 
+![Example Results](Polygon_Generator/images/Example_Output.png)
 
 ## Docker
 
@@ -77,6 +79,5 @@ Sample Query:
 
 # Algorithm
 
-
-<Describe how the code works>
+The code first produces shape files from input jsons. The larger of the two vectors is trimmed using the bounding box of the smaller vector. Then distance matrix calculations are used to attempt to close end points and trimmed lines to form continuous borders by merging linestrings from the two vectors. These borders, now Multi-LineStrings, are converted into a Multi-Polygon and saved in both WGS_84 and UTM format. The WGS_84 format vector is automatically displayed in QGIS with the plugin form of the code, along with current imagery from ESRI if you choose to display imagery.
 
